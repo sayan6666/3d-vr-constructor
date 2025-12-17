@@ -14,6 +14,7 @@ public class newf : MonoBehaviour
 
     private bool create=false;
     private bool resize = false;
+    private bool combine = false;
     private Vector3 createPlacement = Vector3.zero;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -93,10 +94,12 @@ public class newf : MonoBehaviour
 
         if (resizeTrue.action.IsPressed() && !create && !resize)
             resize = true;
+            combine = true;
         if (creationTrue.action.IsPressed() && !resize && !create)
             create= true;
         if (resizeFalse.action.IsPressed() && resize)
             resize = false;
+            combine = false;
 
         if (selectLeft.action.IsPressed() && create)
         {
