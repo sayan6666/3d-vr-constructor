@@ -93,12 +93,10 @@ public class newf : MonoBehaviour
         }
 
         if (resizeTrue.action.IsPressed() && !create && !resize)
-            resize = true;
             combine = true;
         if (creationTrue.action.IsPressed() && !resize && !create)
             create= true;
         if (resizeFalse.action.IsPressed() && resize)
-            resize = false;
             combine = false;
 
         if (selectLeft.action.IsPressed() && create)
