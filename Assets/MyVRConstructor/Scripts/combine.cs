@@ -23,24 +23,31 @@ public class combine : MonoBehaviour
 
     public void OnCollisionEnter(Collision collision)
     {
+        //объект со скриптом управления
         GameObject control = GameObject.Find("t");
+        //проверка на возможность соединения
         if (combined && collision.gameObject.TryGetComponent<combine>(out combine comp))
         {
             Debug.Log("+");
+            //еще одна
             if (comp.GetCombined() )//&& !control.GetComponent<newf>().selectLeft.action.IsPressed() && !control.GetComponent<newf>().selectRight.action.IsPressed())
             {
                 Debug.Log("++");
-
+                //предотвращение множественных соединений
                 bool dontcombine = false;
                 //объединение через fixedjoint
                 if (this.gameObject.GetComponent<FixedJoint>())
                     foreach (FixedJoint joint in this.gameObject.GetComponents<FixedJoint>())
                     {
+                        //проверка соединения на существование
                         if (joint.connectedBody == collision.gameObject.GetComponent<Rigidbody>())
                             dontcombine = true;
                     }
+                //собственно соединение
                 if (!dontcombine)
                     this.gameObject.AddComponent<FixedJoint>().connectedBody = collision.gameObject.GetComponent<Rigidbody>();
+
+
 
                 //объединение через перенос rigidbody
                 /* Destroy(this.gameObject.GetComponent<XRGrabInteractable>());
@@ -62,7 +69,6 @@ public class combine : MonoBehaviour
             }
         }
     }
-
     public void SetCombined() { combined = !combined; }
     public bool GetCombined() { return combined; }
 }
