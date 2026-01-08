@@ -12,6 +12,8 @@ public class Create : MonoBehaviour
     public bool torus = false;
     public bool prism = false;
 
+    public Vector3 color= Vector3.zero;
+
     public InputActionProperty left;
     public InputActionProperty right;
 
@@ -49,6 +51,7 @@ public class Create : MonoBehaviour
             GameObject newObj = Instantiate(GameObject.Find(obj), createPlacement, GameObject.Find("left").transform.rotation);
             //cube.GetComponent<Transform>().SetParent(GameObject.Find("cubefamily").GetComponent<Transform>());
             newObj.GetComponent<Rigidbody>().useGravity = true;
+            newObj.GetComponent<Renderer>().material.color = new Color(color.x, color.y, color.z);
             this.GetComponent<Actions>().create = false;
         }
         //создание с правой руки
@@ -58,6 +61,7 @@ public class Create : MonoBehaviour
             GameObject newObj = Instantiate(GameObject.Find(obj), createPlacement, GameObject.Find("right").transform.rotation);
             //cube.GetComponent<Transform>().SetParent(GameObject.Find("cubefamily").GetComponent<Transform>());
             newObj.GetComponent<Rigidbody>().useGravity = true;
+            newObj.GetComponent<Renderer>().material.color = new Color(color.x, color.y, color.z);
             this.GetComponent<Actions>().create = false;
         }
     }
