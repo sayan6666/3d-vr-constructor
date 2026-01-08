@@ -1,11 +1,7 @@
-using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit.Interactables;
-using System.Collections.Generic;
-using System.Linq;
-using Unity.XR.CoreUtils;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
-public class combine : MonoBehaviour
+public class Combine : MonoBehaviour
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -13,62 +9,51 @@ public class combine : MonoBehaviour
         
     }
 
-    private bool combined = false;
-
     // Update is called once per frame
     void Update()
     {
-        
-    }
-
-    public void OnCollisionEnter(Collision collision)
-    {
-        //объект со скриптом управления
-        GameObject control = GameObject.Find("t");
-        //проверка на возможность соединения
-        if (combined && collision.gameObject.TryGetComponent<combine>(out combine comp))
+        if ((GameObject.Find("rightinteract").GetComponent<XRDirectInteractor>().firstInteractableSelected != null || GameObject.Find("leftinteract").GetComponent<XRDirectInteractor>().firstInteractableSelected != null) && GameObject.Find("Manager").GetComponent<Actions>().combine == -1)
         {
-            Debug.Log("+");
-            //еще одна
-            if (comp.GetCombined() )//&& !control.GetComponent<newf>().selectLeft.action.IsPressed() && !control.GetComponent<newf>().selectRight.action.IsPressed())
+            GameObject.Find("Manager").GetComponent<Actions>().combine = 0;
+            string interactor = "";
+            if (GameObject.Find("rightinteract").GetComponent<XRDirectInteractor>().firstInteractableSelected != null)
+                interactor = "rightinteract";
+            if (GameObject.Find("leftinteract").GetComponent<XRDirectInteractor>().firstInteractableSelected != null)
+                interactor = "leftinteract";
+            if (interactor!="")
+            if (GameObject.Find(interactor).GetComponent<XRDirectInteractor>().firstInteractableSelected.transform.GetComponent<FixedJoint>())
             {
-                Debug.Log("++");
-                //предотвращение множественных соединений
-                bool dontcombine = false;
-                //объединение через fixedjoint
-                if (this.gameObject.GetComponent<FixedJoint>())
-                    foreach (FixedJoint joint in this.gameObject.GetComponents<FixedJoint>())
+                foreach (FixedJoint go in GameObject.Find(interactor).GetComponent<XRDirectInteractor>().firstInteractableSelected.transform.GetComponents<FixedJoint>())
+                {
+                    foreach (FixedJoint joint in go.connectedBody.gameObject.transform.GetComponents<FixedJoint>())
                     {
-                        //проверка соединения на существование
-                        if (joint.connectedBody == collision.gameObject.GetComponent<Rigidbody>())
-                            dontcombine = true;
+                        if (joint.connectedBody == go.gameObject.GetComponent<Rigidbody>())
+                            Destroy(joint);
                     }
-                //собственно соединение
-                if (!dontcombine)
-                    this.gameObject.AddComponent<FixedJoint>().connectedBody = collision.gameObject.GetComponent<Rigidbody>();
-
-
-
-                //объединение через перенос rigidbody
-                /* Destroy(this.gameObject.GetComponent<XRGrabInteractable>());
-                 Destroy(this.gameObject.GetComponent<Rigidbody>());
-                 Destroy(collision.gameObject.GetComponent<XRGrabInteractable>());
-                 Destroy(collision.gameObject.GetComponent<Rigidbody>());
-
-                 MeshCollider col1 = this.gameObject.GetComponent<MeshCollider>();
-                 MeshCollider col2 = collision.gameObject.GetComponent<MeshCollider>();
-                 SetCombined();
-                 collision.gameObject.GetComponent<combine>().SetCombined();
-                 GameObject comb = GameObject.Instantiate(GameObject.Find("Combiner"));
-                 comb.transform.SetPositionAndRotation((this.transform.position+collision.transform.position)/2f,new Quaternion(0,0,0,0));
-                 this.gameObject.transform.SetParent(comb.transform, false);
-                 collision.gameObject.transform.SetParent(comb.transform, false);
-                 comb.GetComponent<Rigidbody>().useGravity=true;
-                 comb.GetComponent<XRGrabInteractable>().colliders.Add(col1);
-                 comb.GetComponent<XRGrabInteractable>().colliders.Add(col2);*/
+                    Destroy(go);
+                }
             }
         }
     }
-    public void SetCombined() { combined = !combined; }
-    public bool GetCombined() { return combined; }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (GameObject.Find("Manager").GetComponent<Actions>().combine==1 && collision.gameObject.TryGetComponent<Rigidbody>(out Rigidbody comp))
+        {
+            bool dontcombine = false;
+            //объединение через fixedjoint
+            if (this.gameObject.GetComponent<FixedJoint>())
+                foreach (FixedJoint joint in this.gameObject.GetComponents<FixedJoint>())
+                {
+                    //проверка соединения на существование
+                    if (joint.connectedBody == collision.gameObject.GetComponent<Rigidbody>())
+                        dontcombine = true;
+                }
+            //собственно соединение
+            if (!dontcombine)
+            {
+                this.gameObject.AddComponent<FixedJoint>().connectedBody = collision.gameObject.GetComponent<Rigidbody>();
+            }
+        }
+    }
 }

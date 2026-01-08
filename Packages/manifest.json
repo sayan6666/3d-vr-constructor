@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.techskullstudios.primitives": "https://github.com/ess4654/Unity-Primitives.git",
     "com.unity.ai.navigation": "2.0.9",
     "com.unity.collab-proxy": "2.10.0",
     "com.unity.ide.rider": "3.0.38",

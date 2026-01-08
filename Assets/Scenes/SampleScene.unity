@@ -2068,9 +2068,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::newf
   selectLeft:
-    m_UseReference: 0
+    m_UseReference: 1
     m_Action:
-      m_Name: 
+      m_Name: Select Left
       m_Type: 0
       m_ExpectedControlType: 
       m_Id: 2c982bdc-f17d-4113-a6da-6ff9b4b780bb
@@ -2078,11 +2078,11 @@ MonoBehaviour:
       m_Interactions: 
       m_SingletonActionBindings: []
       m_Flags: 0
-    m_Reference: {fileID: 0}
+    m_Reference: {fileID: -6131295136447488360, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   selectRight:
-    m_UseReference: 0
+    m_UseReference: 1
     m_Action:
-      m_Name: 
+      m_Name: Select Right
       m_Type: 0
       m_ExpectedControlType: 
       m_Id: e6ab989f-0210-4119-9164-703b72d2db0a
@@ -2090,11 +2090,11 @@ MonoBehaviour:
       m_Interactions: 
       m_SingletonActionBindings: []
       m_Flags: 0
-    m_Reference: {fileID: 0}
+    m_Reference: {fileID: 187161793506945269, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   creationTrue:
-    m_UseReference: 0
+    m_UseReference: 1
     m_Action:
-      m_Name: 
+      m_Name: Creation True
       m_Type: 0
       m_ExpectedControlType: 
       m_Id: 2034bc97-247d-47ce-95cf-4633880b2aed
@@ -2102,11 +2102,11 @@ MonoBehaviour:
       m_Interactions: 
       m_SingletonActionBindings: []
       m_Flags: 0
-    m_Reference: {fileID: 0}
+    m_Reference: {fileID: -5982496924579745919, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   resizeTrue:
-    m_UseReference: 0
+    m_UseReference: 1
     m_Action:
-      m_Name: 
+      m_Name: Resize True
       m_Type: 0
       m_ExpectedControlType: 
       m_Id: f565c596-11b2-4b8e-9593-5ce4f776dc8d
@@ -2114,11 +2114,11 @@ MonoBehaviour:
       m_Interactions: 
       m_SingletonActionBindings: []
       m_Flags: 0
-    m_Reference: {fileID: 0}
+    m_Reference: {fileID: 83097790271614945, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   resizeFalse:
-    m_UseReference: 0
+    m_UseReference: 1
     m_Action:
-      m_Name: 
+      m_Name: Resize False
       m_Type: 0
       m_ExpectedControlType: 
       m_Id: 8f9cdf13-2f6b-41b9-bba9-a8fb933a994d
@@ -2126,7 +2126,11 @@ MonoBehaviour:
       m_Interactions: 
       m_SingletonActionBindings: []
       m_Flags: 0
+<<<<<<< Updated upstream
     m_Reference: {fileID: 0}
+=======
+    m_Reference: {fileID: -5982496924579745919, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+>>>>>>> Stashed changes
 --- !u!1 &1061145554
 GameObject:
   m_ObjectHideFlags: 0

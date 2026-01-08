@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.techskullstudios.primitives": {
+      "version": "https://github.com/ess4654/Unity-Primitives.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "d8157c7457341ef0aee66c20b751b843c1ace06f"
+    },
     "com.unity.ai.navigation": {
       "version": "2.0.9",
       "depth": 0,
