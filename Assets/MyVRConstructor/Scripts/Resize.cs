@@ -7,6 +7,9 @@ public class Resize : MonoBehaviour
     public InputActionProperty left;
     public InputActionProperty right;
 
+    public GameObject lineleft;
+    public GameObject lineright;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -16,6 +19,16 @@ public class Resize : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (this.gameObject.GetComponent<Actions>().resize != 0)
+        {
+            lineleft.SetActive(true);
+            lineright.SetActive(true);
+        }
+        else
+        {
+            lineleft.SetActive(false);
+            lineright.SetActive(false);
+        }
         //левый луч
         Ray ray = new Ray(GameObject.Find("Cubeleftarm").transform.position, GameObject.Find("Cubeleftarm").transform.forward);
         Debug.DrawRay(ray.origin, ray.direction * 10);
