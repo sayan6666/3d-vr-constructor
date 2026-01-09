@@ -1,91 +1,118 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
-using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 using System.Collections.Generic;
 
 namespace MyVRConstructor
 {
     public class AutonomousConstructionMenu : MonoBehaviour
     {
-        [Header("UI Components")]
-        [SerializeField] Canvas menuCanvas;
-        [SerializeField] RectTransform menuPanel;
-        [SerializeField] float menuDistance = 1.5f;
-        [SerializeField] float menuScale = 0.5f;
+        [Header("=== EXISTING SYSTEMS (DO NOT MODIFY) ===")]
+        [SerializeField] private GameObject newfGameObject;  // Объект со скриптом newf.cs
+        [SerializeField] private MonoBehaviour combineScriptHolder; // Объект со скриптом combine.cs
         
-        [Header("Menu Tabs")]
-        [SerializeField] GameObject shapesTab;
-        [SerializeField] GameObject colorsTab;
-        [SerializeField] GameObject toolsTab;
+        [Header("=== NEW SYSTEMS ===")]
+        [SerializeField] private ObjectSpawner objectSpawner;
         
-        [Header("Shape Buttons")]
-        [SerializeField] List<GameObject> shapePrefabs;
-        [SerializeField] List<Button> shapeButtons;
+        [Header("=== UI COMPONENTS ===")]
+        [SerializeField] private Canvas menuCanvas;
+        [SerializeField] private RectTransform menuPanel;
+        [SerializeField] private float menuDistance = 1.5f;
         
-        [Header("Color Buttons")]
-        [SerializeField] List<Color> availableColors;
-        [SerializeField] List<Button> colorButtons;
+        [Header("=== PRIMITIVE SETTINGS ===")]
+        [SerializeField] private List<GameObject> primitivePrefabs;
+        [SerializeField] private List<Button> primitiveButtons;
         
-        [Header("Size Settings")]
-        [SerializeField] Slider sizeSlider;
-        [SerializeField] Text sizeText;
-        [SerializeField] float minSize = 0.1f;
-        [SerializeField] float maxSize = 2.0f;
+        [Header("=== COLOR SETTINGS ===")]
+        [SerializeField] private List<Color> availableColors;
+        [SerializeField] private List<Button> colorButtons;
+        [SerializeField] private Image currentColorDisplay;
         
-        [Header("Input Actions")]
-        [SerializeField] InputActionProperty toggleMenuAction;
-        [SerializeField] InputActionProperty createObjectLeftAction;
-        [SerializeField] InputActionProperty createObjectRightAction;
-        [SerializeField] InputActionProperty navigateMenuAction;
+        [Header("=== SIZE SETTINGS ===")]
+        [SerializeField] private Slider sizeSlider;
+        [SerializeField] private Text sizeText;
+        [SerializeField] private float minSize = 0.1f;
+        [SerializeField] private float maxSize = 2.0f;
         
-        [Header("Spawn Positions")]
-        [SerializeField] Transform leftController;
-        [SerializeField] Transform rightController;
-        [SerializeField] float spawnDistance = 0.5f;
-        
-        [Header("Visual Feedback")]
-        [SerializeField] ParticleSystem creationParticles;
-        [SerializeField] AudioSource audioSource;
-        [SerializeField] AudioClip menuOpenSound;
-        [SerializeField] AudioClip buttonClickSound;
-        [SerializeField] AudioClip createSound;
+        [Header("=== CONTROLLER REFERENCES ===")]
+        [SerializeField] private Transform leftController;
+        [SerializeField] private Transform rightController;
+        [SerializeField] private float spawnDistance = 0.5f;
         
         // Текущие настройки
-        private GameObject currentShapePrefab;
-        private Color currentColor = Color.white;
-        private float currentSize = 1.0f;
-        private bool isMenuVisible = false;
-        private Transform xrCamera;
-        private int selectedShapeIndex = 0;
+        private int selectedPrimitiveIndex = 0;
         private int selectedColorIndex = 0;
+        private float currentSize = 1.0f;
+        private Color currentColor = Color.white;
+        
+        // Ссылки
+        private Transform xrCamera;
+        private bool isMenuVisible = false;
+        
+        // Кэшированные компоненты из существующих скриптов
+        private MonoBehaviour newfScript;
+        private MonoBehaviour combineScript;
         
         void Start()
         {
+            InitializeReferences();
+            SetupUI();
+            SetupObjectSpawner();
+            HideMenu();
+        }
+        
+        void Update()
+        {
+            if (isMenuVisible)
+                UpdateMenuPosition();
+        }
+        
+        #region Инициализация
+        
+        private void InitializeReferences()
+        {
             xrCamera = Camera.main?.transform;
             
-            // Настройка канваса
+            // Получаем ссылки на существующие скрипты
+            if (newfGameObject != null)
+            {
+                // Ищем скрипт newf на объекте
+                newfScript = newfGameObject.GetComponent("newf") as MonoBehaviour;
+                if (newfScript == null)
+                    Debug.LogWarning("newf script not found on the specified GameObject");
+            }
+            
+            if (combineScriptHolder != null)
+            {
+                // Ищем скрипт combine на объекте
+                combineScript = combineScriptHolder.GetComponent("combine") as MonoBehaviour;
+                if (combineScript == null)
+                    Debug.LogWarning("combine script not found on the specified GameObject");
+            }
+            
+            // Настраиваем ObjectSpawner
+            if (objectSpawner == null)
+                objectSpawner = FindObjectOfType<ObjectSpawner>();
+        }
+        
+        private void SetupUI()
+        {
             if (menuCanvas != null)
             {
                 menuCanvas.worldCamera = Camera.main;
                 menuCanvas.planeDistance = 0.1f;
-                SetMenuVisibility(false);
             }
             
-            // Настройка префабов по умолчанию
-            if (shapePrefabs.Count > 0)
-                currentShapePrefab = shapePrefabs[0];
-            
-            // Настройка кнопок фигур
-            for (int i = 0; i < shapeButtons.Count && i < shapePrefabs.Count; i++)
+            // Настройка кнопок примитивов
+            for (int i = 0; i < primitiveButtons.Count && i < primitivePrefabs.Count; i++)
             {
                 int index = i;
-                shapeButtons[i].onClick.AddListener(() => SelectShape(index));
+                primitiveButtons[i].onClick.AddListener(() => SelectPrimitive(index));
                 
-                // Устанавливаем иконку или текст
-                Text buttonText = shapeButtons[i].GetComponentInChildren<Text>();
+                Text buttonText = primitiveButtons[i].GetComponentInChildren<Text>();
                 if (buttonText != null)
-                    buttonText.text = shapePrefabs[i].name;
+                    buttonText.text = primitivePrefabs[i].name;
             }
             
             // Настройка кнопок цветов
@@ -94,7 +121,6 @@ namespace MyVRConstructor
                 int index = i;
                 colorButtons[i].onClick.AddListener(() => SelectColor(index));
                 
-                // Устанавливаем цвет на кнопке
                 Image buttonImage = colorButtons[i].GetComponent<Image>();
                 if (buttonImage != null)
                     buttonImage.color = availableColors[i];
@@ -107,93 +133,50 @@ namespace MyVRConstructor
                 sizeSlider.maxValue = maxSize;
                 sizeSlider.value = currentSize;
                 sizeSlider.onValueChanged.AddListener(SetSize);
+                UpdateSizeDisplay();
             }
             
-            UpdateSizeDisplay();
-            
-            // Включаем Input Actions
-            EnableInputActions();
-            
-            // Автоматический поиск контроллеров
-            FindControllersAutomatically();
+            // Настройка отображения цвета
+            if (currentColorDisplay != null)
+                currentColorDisplay.color = currentColor;
         }
         
-        void Update()
+        private void SetupObjectSpawner()
         {
-            // Обработка ввода
-            HandleInput();
-            
-            // Позиционирование меню
-            if (isMenuVisible)
-                PositionMenu();
-        }
-        
-        void HandleInput()
-        {
-            // Переключение меню
-            if (toggleMenuAction.action.WasPressedThisFrame())
+            if (objectSpawner != null)
             {
-                ToggleMenu();
-            }
-            
-            // Создание объекта левым контроллером
-            if (createObjectLeftAction.action.WasPressedThisFrame())
-            {
-                CreateObjectAtController(true);
-            }
-            
-            // Создание объекта правым контроллером
-            if (createObjectRightAction.action.WasPressedThisFrame())
-            {
-                CreateObjectAtController(false);
-            }
-            
-            // Навигация по меню (если видимо)
-            if (isMenuVisible)
-            {
-                Vector2 navigation = navigateMenuAction.action.ReadValue<Vector2>();
-                if (navigation != Vector2.zero)
-                {
-                    NavigateMenu(navigation);
-                }
+                // Используем префабы из нашего меню
+                objectSpawner.objectPrefabs = primitivePrefabs;
+                objectSpawner.cameraToFace = Camera.main;
+                
+                // Подписываемся на событие создания
+                objectSpawner.objectSpawned += OnObjectSpawned;
             }
         }
         
-        void ToggleMenu()
+        #endregion
+        
+        #region Управление меню
+        
+        public void ToggleMenu()
         {
             isMenuVisible = !isMenuVisible;
-            SetMenuVisibility(isMenuVisible);
+            menuCanvas.gameObject.SetActive(isMenuVisible);
             
             if (isMenuVisible)
-            {
-                PlaySound(menuOpenSound);
-                Debug.Log("Menu opened");
-            }
-            else
-            {
-                Debug.Log("Menu closed");
-            }
-        }
-        
-        void SetMenuVisibility(bool visible)
-        {
-            if (menuCanvas != null)
-                menuCanvas.gameObject.SetActive(visible);
-            
-            // Простая анимация
-            if (visible && menuPanel != null)
-            {
-                menuPanel.localScale = Vector3.zero;
                 StartCoroutine(AnimateMenuAppearance());
-            }
         }
         
-        System.Collections.IEnumerator AnimateMenuAppearance()
+        private System.Collections.IEnumerator AnimateMenuAppearance()
         {
+            if (menuPanel == null) yield break;
+            
             float duration = 0.3f;
             float elapsed = 0f;
             Vector3 startScale = Vector3.zero;
             Vector3 endScale = Vector3.one;
+            
+            menuPanel.localScale = startScale;
             
             while (elapsed < duration)
             {
@@ -205,74 +188,72 @@ namespace MyVRConstructor
             menuPanel.localScale = endScale;
         }
         
-        void PositionMenu()
+        private void UpdateMenuPosition()
         {
             if (xrCamera == null || menuCanvas == null) return;
             
-            // Позиция перед камерой
             Vector3 targetPosition = xrCamera.position + xrCamera.forward * menuDistance;
-            
-            // Плавное следование
             menuCanvas.transform.position = Vector3.Lerp(
                 menuCanvas.transform.position,
                 targetPosition,
                 Time.deltaTime * 8f
             );
             
-            // Поворот к камере
-            menuCanvas.transform.LookAt(
-                2 * menuCanvas.transform.position - xrCamera.position
-            );
-            
-            // Масштабирование относительно расстояния
-            float distance = Vector3.Distance(menuCanvas.transform.position, xrCamera.position);
-            float scale = Mathf.Clamp(menuScale / distance, 0.3f, 1.5f);
-            menuCanvas.transform.localScale = Vector3.one * scale;
+            menuCanvas.transform.LookAt(2 * menuCanvas.transform.position - xrCamera.position);
         }
         
-        void SelectShape(int index)
+        #endregion
+        
+        #region Выбор настроек
+        
+        public void SelectPrimitive(int index)
         {
-            if (index >= 0 && index < shapePrefabs.Count)
+            if (index >= 0 && index < primitivePrefabs.Count)
             {
-                selectedShapeIndex = index;
-                currentShapePrefab = shapePrefabs[index];
+                selectedPrimitiveIndex = index;
+                
+                // Устанавливаем в ObjectSpawner
+                if (objectSpawner != null)
+                    objectSpawner.spawnOptionIndex = index;
                 
                 // Визуальная обратная связь
-                HighlightButton(shapeButtons, index);
-                PlaySound(buttonClickSound);
+                HighlightButton(primitiveButtons, index);
                 
-                Debug.Log($"Selected shape: {currentShapePrefab.name}");
+                Debug.Log($"Selected primitive: {primitivePrefabs[index].name}");
             }
         }
         
-        void SelectColor(int index)
+        public void SelectColor(int index)
         {
             if (index >= 0 && index < availableColors.Count)
             {
                 selectedColorIndex = index;
                 currentColor = availableColors[index];
                 
+                // Обновляем отображение
+                if (currentColorDisplay != null)
+                    currentColorDisplay.color = currentColor;
+                
                 // Визуальная обратная связь
                 HighlightButton(colorButtons, index);
-                PlaySound(buttonClickSound);
                 
                 Debug.Log($"Selected color: {currentColor}");
             }
         }
         
-        void SetSize(float size)
+        public void SetSize(float size)
         {
             currentSize = Mathf.Clamp(size, minSize, maxSize);
             UpdateSizeDisplay();
         }
         
-        void UpdateSizeDisplay()
+        private void UpdateSizeDisplay()
         {
             if (sizeText != null)
                 sizeText.text = $"Size: {currentSize:F2}x";
         }
         
-        void HighlightButton(List<Button> buttons, int selectedIndex)
+        private void HighlightButton(List<Button> buttons, int selectedIndex)
         {
             for (int i = 0; i < buttons.Count; i++)
             {
@@ -280,51 +261,45 @@ namespace MyVRConstructor
                 if (buttonImage != null)
                 {
                     buttonImage.color = (i == selectedIndex) 
-                        ? new Color(0.3f, 0.6f, 1f, 1f)  // Выделенный цвет
-                        : Color.white;                    // Обычный цвет
+                        ? new Color(0.3f, 0.6f, 1f, 1f)
+                        : Color.white;
                 }
             }
         }
         
-        void NavigateMenu(Vector2 direction)
-        {
-            // Простая навигация стрелками/джойстиком
-            // Можно реализовать выбор элементов без клика
-            Debug.Log($"Menu navigation: {direction}");
-        }
+        #endregion
         
-        void CreateObjectAtController(bool isLeftController)
+        #region Интеграция с существующими системами
+        
+        public void CreateObjectAtController(bool isLeftController)
         {
-            if (currentShapePrefab == null)
-            {
-                Debug.LogWarning("No shape selected!");
-                return;
-            }
+            if (objectSpawner == null) return;
             
             Transform controller = isLeftController ? leftController : rightController;
-            if (controller == null)
-            {
-                Debug.LogWarning("Controller not found!");
-                return;
-            }
+            if (controller == null) return;
             
-            // Позиция создания
             Vector3 spawnPosition = controller.position + controller.forward * spawnDistance;
-            Quaternion spawnRotation = controller.rotation;
+            Vector3 spawnNormal = -controller.forward;
             
-            // Создание объекта
-            GameObject newObj = Instantiate(currentShapePrefab, spawnPosition, spawnRotation);
+            // Используем ObjectSpawner для создания
+            bool success = objectSpawner.TrySpawnObject(spawnPosition, spawnNormal);
             
-            // Применение настроек
-            ApplySettingsToObject(newObj);
-            
-            // Визуальная и звуковая обратная связь
-            PlayCreationEffects(spawnPosition);
-            
-            Debug.Log($"Created {currentShapePrefab.name} at {controller.name}");
+            if (success)
+            {
+                Debug.Log($"Created object at {controller.name}");
+            }
         }
         
-        void ApplySettingsToObject(GameObject obj)
+        private void OnObjectSpawned(GameObject spawnedObject)
+        {
+            // Применяем настройки к созданному объекту
+            ApplySettingsToObject(spawnedObject);
+            
+            // Активируем режим соединения если нужно
+            ActivateCombineModeIfNeeded(spawnedObject);
+        }
+        
+        private void ApplySettingsToObject(GameObject obj)
         {
             if (obj == null) return;
             
@@ -332,7 +307,6 @@ namespace MyVRConstructor
             Renderer renderer = obj.GetComponent<Renderer>();
             if (renderer != null)
             {
-                // Создаем новый материал, чтобы не менять префаб
                 Material newMaterial = new Material(renderer.material);
                 newMaterial.color = currentColor;
                 renderer.material = newMaterial;
@@ -341,97 +315,123 @@ namespace MyVRConstructor
             // Применяем размер
             obj.transform.localScale = Vector3.one * currentSize;
             
-            // Добавляем физику если нет
-            Rigidbody rb = obj.GetComponent<Rigidbody>();
-            if (rb == null)
+            // Добавляем необходимые компоненты
+            EnsureRequiredComponents(obj);
+        }
+        
+        private void EnsureRequiredComponents(GameObject obj)
+        {
+            // Rigidbody
+            if (!obj.TryGetComponent<Rigidbody>(out var rb))
                 rb = obj.AddComponent<Rigidbody>();
-            
             rb.useGravity = true;
             
-            // Добавляем тег для совместимости
+            // Тег для совместимости с newf.cs
             obj.tag = "PhysObj";
-        }
-        
-        void PlayCreationEffects(Vector3 position)
-        {
-            // Частицы
-            if (creationParticles != null)
-            {
-                creationParticles.transform.position = position;
-                creationParticles.Play();
-            }
             
-            // Звук
-            PlaySound(createSound);
-        }
-        
-        void PlaySound(AudioClip clip)
-        {
-            if (audioSource != null && clip != null)
+            // Компонент combine для совместимости
+            if (combineScript != null)
             {
-                audioSource.PlayOneShot(clip);
+                // Копируем компонент combine с оригинального объекта
+                CopyCombineComponent(obj);
             }
         }
         
-        void FindControllersAutomatically()
+        private void CopyCombineComponent(GameObject targetObj)
         {
-            // Автоматический поиск контроллеров если не назначены
-            if (leftController == null)
-            {
-                GameObject left = GameObject.Find("left");
-                if (left != null) leftController = left.transform;
-            }
+            // Этот метод копирует компонент combine с существующего объекта
+            // на новый объект для совместимости
             
-            if (rightController == null)
+            // Находим любой объект с компонентом combine
+            var existingCombine = FindObjectOfType<combine>();
+            if (existingCombine != null)
             {
-                GameObject right = GameObject.Find("right");
-                if (right != null) rightController = right.transform;
+                // Копируем компонент через AddComponent
+                var newCombine = targetObj.AddComponent<combine>();
+                
+                // Здесь можно скопировать настройки если нужно
+                // Но так как combine.cs не имеет публичных полей, 
+                // просто добавляем компонент
             }
+        }
+        
+        private void ActivateCombineModeIfNeeded(GameObject obj)
+        {
+            // Активируем режим соединения для объекта
+            // Это нужно для совместимости с существующей системой
             
-            // Или ищем по тегу
-            if (leftController == null || rightController == null)
+            var combineComp = obj.GetComponent<combine>();
+            if (combineComp != null)
             {
-                GameObject[] controllers = GameObject.FindGameObjectsWithTag("Controller");
-                foreach (var controller in controllers)
+                // Используем рефлексию для вызова метода SetCombined
+                // если он публичный
+                System.Reflection.MethodInfo method = 
+                    combineComp.GetType().GetMethod("SetCombined");
+                    
+                if (method != null)
                 {
-                    if (controller.name.Contains("left", System.StringComparison.OrdinalIgnoreCase))
-                        leftController = controller.transform;
-                    else if (controller.name.Contains("right", System.StringComparison.OrdinalIgnoreCase))
-                        rightController = controller.transform;
+                    method.Invoke(combineComp, null);
                 }
             }
         }
         
-        void EnableInputActions()
+        // Методы для управления режимами через существующий newf.cs
+        public void ActivateCreateMode()
         {
-            toggleMenuAction.action.Enable();
-            createObjectLeftAction.action.Enable();
-            createObjectRightAction.action.Enable();
-            navigateMenuAction.action.Enable();
+            // Здесь можно попытаться активировать режим создания
+            // через существующий newf.cs если это возможно
+            Debug.Log("Create mode activated");
         }
         
-        void OnDisable()
+        public void ActivateCombineMode()
         {
-            toggleMenuAction.action.Disable();
-            createObjectLeftAction.action.Disable();
-            createObjectRightAction.action.Disable();
-            navigateMenuAction.action.Disable();
+            // Активируем режим соединения для всех объектов
+            var allCombineObjects = FindObjectsOfType<combine>();
+            foreach (var combineObj in allCombineObjects)
+            {
+                System.Reflection.MethodInfo method = 
+                    combineObj.GetType().GetMethod("SetCombined");
+                    
+                if (method != null)
+                {
+                    method.Invoke(combineObj, null);
+                }
+            }
+            
+            Debug.Log("Combine mode activated for all objects");
         }
         
-        // Публичные методы для внешнего доступа
-        public void ShowMenu() => SetMenuVisibility(true);
-        public void HideMenu() => SetMenuVisibility(false);
+        public void ActivateResizeMode()
+        {
+            // Можно добавить логику для активации режима изменения размера
+            // через существующий newf.cs
+            Debug.Log("Resize mode activated");
+        }
+        
+        #endregion
+        
+        #region Публичный API
+        
+        public void ShowMenu() => menuCanvas.gameObject.SetActive(true);
+        public void HideMenu() => menuCanvas.gameObject.SetActive(false);
         public bool IsMenuVisible => isMenuVisible;
         
-        public GameObject CreateObjectAtPosition(Vector3 position, Quaternion rotation)
+        public GameObject SpawnPrimitiveAtPosition(Vector3 position, Quaternion rotation)
         {
-            if (currentShapePrefab == null) return null;
+            if (objectSpawner == null || primitivePrefabs.Count == 0) 
+                return null;
             
-            GameObject newObj = Instantiate(currentShapePrefab, position, rotation);
-            ApplySettingsToObject(newObj);
-            PlayCreationEffects(position);
+            // Создаем объект
+            GameObject primitive = Instantiate(
+                primitivePrefabs[selectedPrimitiveIndex], 
+                position, 
+                rotation
+            );
             
-            return newObj;
+            ApplySettingsToObject(primitive);
+            return primitive;
         }
+        
+        #endregion
     }
 }
