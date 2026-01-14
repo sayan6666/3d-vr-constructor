@@ -51,7 +51,7 @@ public class Resize : MonoBehaviour
             {
                 //hit.collider.attachedRigidbody.useGravity = false;
                 BoxCollider[] sides = hit.collider.gameObject.GetComponents<BoxCollider>();
-                if ((hit.collider == sides[0] || hit.collider == sides[1]) && !(hit1.collider.gameObject.transform.localScale.z < 0.01))
+                if ((hit.collider == sides[0] || hit.collider == sides[1]) && !(hit.collider.gameObject.transform.localScale.z < 0.01))
                 {
                     /* Vector3 newPos = hit.collider.transform.position + new Vector3( 0f, 0f, (1f - 0.01f) * (hit.collider.transform.position.z-hit.collider.transform.localScale.z/2f));
                      hit.collider.gameObject.transform.SetPositionAndRotation(newPos//new Vector3(hit.collider.gameObject.transform.position.x, hit.collider.gameObject.transform.position.y, hit.collider.gameObject.transform.position.z+0.005f)
@@ -59,12 +59,12 @@ public class Resize : MonoBehaviour
                     hit.collider.gameObject.transform.localScale = new Vector3(
                         hit.collider.gameObject.transform.localScale.x, hit.collider.gameObject.transform.localScale.y, hit.collider.gameObject.transform.localScale.z + (0.01f*resize));
                 }
-                if ((hit.collider == sides[2] || hit.collider == sides[3]) && !(hit1.collider.gameObject.transform.localScale.x < 0.01))
+                if ((hit.collider == sides[2] || hit.collider == sides[3]) && !(hit.collider.gameObject.transform.localScale.x < 0.01))
                 {
                     hit.collider.gameObject.transform.localScale = new Vector3(
                         hit.collider.gameObject.transform.localScale.x + (0.01f*resize), hit.collider.gameObject.transform.localScale.y, hit.collider.gameObject.transform.localScale.z);
                 }
-                if ((hit.collider == sides[4] || hit.collider == sides[5]) && !(hit1.collider.gameObject.transform.localScale.y < 0.01))
+                if ((hit.collider == sides[4] || hit.collider == sides[5]) && !(hit.collider.gameObject.transform.localScale.y < 0.01))
                 {
                     hit.collider.gameObject.transform.localScale = new Vector3(
                         hit.collider.gameObject.transform.localScale.x, hit.collider.gameObject.transform.localScale.y + (0.01f*resize), hit.collider.gameObject.transform.localScale.z);

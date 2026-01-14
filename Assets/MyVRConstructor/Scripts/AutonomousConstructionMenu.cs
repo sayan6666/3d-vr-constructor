@@ -343,7 +343,7 @@ namespace MyVRConstructor
             // на новый объект для совместимости
             
             // Находим любой объект с компонентом combine
-            var existingCombine = FindObjectOfType<combine>();
+            /*var existingCombine = FindObjectOfType<combine>();
             if (existingCombine != null)
             {
                 // Копируем компонент через AddComponent
@@ -352,7 +352,7 @@ namespace MyVRConstructor
                 // Здесь можно скопировать настройки если нужно
                 // Но так как combine.cs не имеет публичных полей, 
                 // просто добавляем компонент
-            }
+            }*/
         }
         
         private void ActivateCombineModeIfNeeded(GameObject obj)
@@ -360,7 +360,7 @@ namespace MyVRConstructor
             // Активируем режим соединения для объекта
             // Это нужно для совместимости с существующей системой
             
-            var combineComp = obj.GetComponent<combine>();
+            /*var combineComp = obj.GetComponent<combine>();
             if (combineComp != null)
             {
                 // Используем рефлексию для вызова метода SetCombined
@@ -372,7 +372,7 @@ namespace MyVRConstructor
                 {
                     method.Invoke(combineComp, null);
                 }
-            }
+            }*/
         }
         
         // Методы для управления режимами через существующий newf.cs
@@ -380,13 +380,14 @@ namespace MyVRConstructor
         {
             // Здесь можно попытаться активировать режим создания
             // через существующий newf.cs если это возможно
+            GameObject.Find("Manager").GetComponent<Actions>().create = true;
             Debug.Log("Create mode activated");
         }
         
         public void ActivateCombineMode()
         {
             // Активируем режим соединения для всех объектов
-            var allCombineObjects = FindObjectsOfType<combine>();
+            /*var allCombineObjects = FindObjectsOfType<combine>();
             foreach (var combineObj in allCombineObjects)
             {
                 System.Reflection.MethodInfo method = 
@@ -396,7 +397,7 @@ namespace MyVRConstructor
                 {
                     method.Invoke(combineObj, null);
                 }
-            }
+            }*/
             
             Debug.Log("Combine mode activated for all objects");
         }

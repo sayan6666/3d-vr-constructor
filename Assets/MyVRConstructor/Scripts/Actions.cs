@@ -6,7 +6,8 @@ public class Actions : MonoBehaviour
     public int resize = 0;
     public int combine = 0;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    // Start is called once before the first execution of Update after the MonoBehaviour is
+    // d
     void Start()
     {
         
